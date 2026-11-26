@@ -104,21 +104,21 @@ struct NotchLLMUsageView: View {
                 antigravitySuccess(snap)
             } else if snap.sessionLimit == nil && snap.weekLimit == nil {
                 if provider != .cursor {
-                    window("Today", snap.today, prominent: true)
-                    window("Week", snap.week)
-                    window("Session", snap.session)
+                    window("今天", snap.today, prominent: true)
+                    window("本周", snap.week)
+                    window("会话", snap.session)
                 }
                 Text("quota unavailable").font(.caption2).foregroundStyle(.secondary.opacity(0.7))
             } else {
                 if provider == .cursor {
-                    if let limit = snap.sessionLimit { quotaGauge("Cursor Models", limit) }
-                    if let limit = snap.weekLimit { quotaGauge("Other Models", limit) }
+                    if let limit = snap.sessionLimit { quotaGauge("Cursor 模型", limit) }
+                    if let limit = snap.weekLimit { quotaGauge("其他模型", limit) }
                 } else {
-                    if let limit = snap.sessionLimit { quotaGauge("Session", limit) }
-                    if let limit = snap.weekLimit { quotaGauge("Week", limit) }
+                    if let limit = snap.sessionLimit { quotaGauge("会话", limit) }
+                    if let limit = snap.weekLimit { quotaGauge("本周", limit) }
                     VStack(alignment: .leading, spacing: 2) {
-                        window("Today", snap.today, compact: true)
-                        window("Week", snap.week, compact: true)
+                        window("今天", snap.today, compact: true)
+                        window("本周", snap.week, compact: true)
                     }
                 }
             }
@@ -143,17 +143,17 @@ struct NotchLLMUsageView: View {
         
         return VStack(alignment: .leading, spacing: 6) {
             if let limit = limitFromModel(sessionModel) {
-                quotaGauge("Session", limit)
+                quotaGauge("会话", limit)
             }
             if let limit = limitFromModel(weeklyModel) {
-                quotaGauge("Weekly", limit)
+                quotaGauge("每周", limit)
             }
             
             // Token counts and estimated cost read from the language server's
             // conversation history (all pools; Antigravity does not split them).
             VStack(alignment: .leading, spacing: 4) {
-                window("Today", snap.today, compact: true)
-                window("Week", snap.week, compact: true)
+                window("今天", snap.today, compact: true)
+                window("本周", snap.week, compact: true)
             }
         }
     }
@@ -172,7 +172,7 @@ struct NotchLLMUsageView: View {
                                 Image(systemName: "exclamationmark.triangle.fill")
                                     .font(.caption2)
                                     .foregroundStyle(.orange)
-                                    .help(account.errorMessage ?? "New API account has an error")
+                                    .help(account.errorMessage ?? "New API 账号异常")
                             }
                         }
 
@@ -183,14 +183,14 @@ struct NotchLLMUsageView: View {
                                 .foregroundStyle(.secondary)
                                 .lineLimit(2)
                         } else {
-                            quotaRow("Balance", account.balanceQuota, prominent: true)
-                            quotaRow("Used", account.usedQuota)
-                            quotaRow("Today", account.todayQuota)
-                            quotaRow("Week", account.weekQuota)
+                            quotaRow("余额", account.balanceQuota, prominent: true)
+                            quotaRow("已用", account.usedQuota)
+                            quotaRow("今天", account.todayQuota)
+                            quotaRow("本周", account.weekQuota)
                             HStack(spacing: 12) {
                                 metric("RPM", account.currentRPM)
                                 metric("TPM", account.currentTPM)
-                                metric("Requests", account.requestCount)
+                                metric("请求数", account.requestCount)
                             }
                             if let errorMessage = account.errorMessage {
                                 Text(errorMessage)
@@ -260,7 +260,7 @@ struct NotchLLMUsageView: View {
             HStack {
                 Text("\(usedPct)% used").font(.caption2).monospacedDigit()
                 Spacer()
-                Text("\(leftPct)% left").font(.caption2).foregroundStyle(.secondary).monospacedDigit()
+                Text("剩余 \(leftPct)%").font(.caption2).foregroundStyle(.secondary).monospacedDigit()
             }
         }
     }
@@ -279,9 +279,9 @@ struct NotchLLMUsageView: View {
         let hours = seconds / 3600
         let minutes = (seconds % 3600) / 60
         if days > 0 {
-            return "resets in \(days)d \(hours % 24)h \(minutes)m"
+            return "重置还需 \(days)天\(hours % 24)小时\(minutes)分"
         }
-        return hours > 0 ? "resets in \(hours)h \(minutes)m" : "resets in \(minutes)m"
+        return hours > 0 ? "重置还需 \(hours)小时\(minutes)分" : "重置还需 \(minutes)分"
     }
 
     private func window(_ label: String, _ totals: UsageTotals, prominent: Bool = false, compact: Bool = false) -> some View {
@@ -306,7 +306,7 @@ struct NotchLLMUsageView: View {
             if totals.isPercentage {
                 // Quota providers store the remaining fraction in costUSD; it is not money.
                 let leftPct = Int((max(0, min(1, totals.costUSD)) * 100).rounded())
-                Text("\(leftPct)% left")
+                Text("剩余 \(leftPct)%")
                     .font(.caption2).foregroundStyle(.secondary).monospacedDigit()
             } else {
                 Text(costLabel(totals))
@@ -319,10 +319,10 @@ struct NotchLLMUsageView: View {
     /// Cost is an estimate computed from local token counts against the API price
     /// table — not a subscription bill. When some models used have no entry in the
     /// table we cannot price them: show "\(money)+" when a partial amount is known,
-    /// and an explicit "est. n/a" instead of a misleading "$0.00+" when nothing is.
+    /// and an explicit "暂无估价" instead of a misleading "$0.00+" when nothing is.
     private func costLabel(_ totals: UsageTotals) -> String {
         guard totals.hasUnpricedModel else { return money(totals.costUSD) }
-        return totals.costUSD > 0 ? money(totals.costUSD) + "+" : "est. n/a"
+        return totals.costUSD > 0 ? money(totals.costUSD) + "+" : "暂无估价"
     }
 
     private func costHelp(_ totals: UsageTotals) -> String {
