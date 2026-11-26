@@ -377,7 +377,7 @@ struct NewAPIUsageProvider: UsageProvider {
 
     func fetchSnapshot(now: Date) async throws -> UsageSnapshot {
         let accounts = accountSource.accounts()
-        guard !accounts.isEmpty else { throw UsageError.notConfigured("No New API accounts configured") }
+        guard !accounts.isEmpty else { throw UsageError.notConfigured("未配置 New API 账号") }
 
         let snapshots = await withTaskGroup(of: NewAPIAccountSnapshot.self, returning: [NewAPIAccountSnapshot].self) { group in
             for account in accounts {
